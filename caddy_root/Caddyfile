@@ -1,0 +1,20 @@
+{
+    email lucas@lucasgiancola.io
+}
+
+photos.lucasgiancola.io {
+    reverse_proxy immich-server:2283
+}
+
+cloud.lucasgiancola.io {
+    reverse_proxy nextcloud-aio-apache:11000
+}
+
+auth.lucasgiancola.io {
+    reverse_proxy authentik-server-1:9000
+}
+
+vault.lucasgiancola.io {
+    reverse_proxy vaultwarden:80
+}
+

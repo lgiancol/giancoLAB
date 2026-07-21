@@ -1,0 +1,34 @@
+services:
+  clubhouse_runner:
+    image: github-runner:${RUNNER_VERSION}
+    group_add:
+      - "1001"
+    env_file:
+      - /srv/appdata/gha-runner/.env.clubhouse
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+
+#  oneiron_runner:
+#    image: github-runner:2.334.0
+#    group_add:
+#      - "1001"
+#    env_file:
+#      - ./.env.oneiron
+#    restart: unless-stopped
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#      - /usr/bin/docker:/usr/bin/docker
+
+#  albatross_runner:
+#    image: github-runner:2.334.0
+#    group_add:
+#      - "1001"
+#    env_file:
+#      - ./.env.albatross
+#    restart: unless-stopped
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#      - /usr/bin/docker:/usr/bin/docker
+

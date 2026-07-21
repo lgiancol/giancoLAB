@@ -1,0 +1,11 @@
+services:
+  oneiron_runner:
+    image: github-runner:${RUNNER_VERSION}
+    group_add:
+      - "1001"
+    env_file:
+      - /srv/appdata/gha-runner/.env.oneiron
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker

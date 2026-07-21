@@ -24,6 +24,6 @@ services:
       SSO_CLIENT_ID: V6JvPw1iIcg24S3ed2iWSJSBIBkjipGlj3vFcCev
       SSO_CLIENT_SECRET: RLlpTUu0nbXOOMxHJHNZ6JHBSMjehuSJhfqXajYEtt6Nw8iQST29EQcjsVLbFh7CGeZQtg8Z7Js0MFUDsrM23kIfk7TsmrkvixptcYLV2Fhl5An920FZg5tFo1J05XwK
     volumes:
-      - ./data:/data
+      - /srv/storage/vaultwarden:/data
     networks:
       - web

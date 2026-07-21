@@ -16,7 +16,10 @@ services:
 
     networks:
       - web
+      - giancolab_internal
 
 networks:
   web:
+    external: true
+  giancolab_internal:
     external: true

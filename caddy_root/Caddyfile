@@ -18,3 +18,12 @@ vault.lucasgiancola.io {
     reverse_proxy vaultwarden:80
 }
 
+optimus.lucasgiancola.io {
+    tls internal
+    reverse_proxy n8n:5678
+}
+
+portainer.lucasgiancola.io {
+    tls internal
+    reverse_proxy portainer:9000
+}

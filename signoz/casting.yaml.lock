@@ -330,6 +330,46 @@ spec:
         POSTGRES_DB: signoz
         POSTGRES_PASSWORD: signoz
         POSTGRES_USER: signoz
+  patches:
+  - operations:
+    - op: replace
+      path: /services/signoz-metastore-postgres-0/volumes/0
+      value: /srv/storage/signoz/postgres:/var/lib/postgresql/data
+    - op: replace
+      path: /services/signoz-telemetrykeeper-clickhousekeeper-0/volumes/0
+      value: /srv/storage/signoz/clickhouse-keeper:/var/lib/clickhouse-keeper
+    - op: replace
+      path: /services/signoz-telemetrystore-clickhouse-0-0/volumes/0
+      value: /srv/storage/signoz/clickhouse:/var/lib/clickhouse
+    - op: replace
+      path: /services/signoz-telemetrystore-clickhouse-0-0/volumes/1
+      value: /srv/appdata/signoz/user-scripts:/var/lib/clickhouse/user_scripts:ro
+    - op: replace
+      path: /services/signoz-telemetrystore-clickhouse-user-scripts/volumes/0
+      value: /srv/appdata/signoz/user-scripts:/var/lib/clickhouse/user_scripts
+    - op: remove
+      path: /volumes
+    - op: add
+      path: /networks/web
+      value:
+        external: true
+    - op: replace
+      path: /services/signoz-signoz-0/networks
+      value:
+      - signoz-network
+      - web
+    - op: remove
+      path: /services/signoz-signoz-0/ports
+    - op: replace
+      path: /services/ingester/networks
+      value:
+        signoz-network:
+          aliases:
+          - signoz-ingester
+        web: {}
+    - op: remove
+      path: /services/ingester/ports
+    target: deployment/compose.yaml
   signoz:
     spec:
       cluster:
@@ -337,6 +377,7 @@ spec:
       config: {}
       enabled: true
       env:
+        SIGNOZ_ALERTMANAGER_SIGNOZ_EXTERNAL__URL: https://signoz.lucasgiancola.io
         SIGNOZ_SQLSTORE_POSTGRES_DSN: postgres://signoz:signoz@signoz-metastore-postgres-0:5432/signoz?sslmode=disable
         SIGNOZ_SQLSTORE_PROVIDER: postgres
         SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN: tcp://signoz-telemetrystore-clickhouse-0-0:9000
@@ -351,6 +392,7 @@ spec:
         - ws://signoz-signoz-0:4320
       config: {}
       env:
+        SIGNOZ_ALERTMANAGER_SIGNOZ_EXTERNAL__URL: https://signoz.lucasgiancola.io
         SIGNOZ_SQLSTORE_POSTGRES_DSN: postgres://signoz:signoz@signoz-metastore-postgres-0:5432/signoz?sslmode=disable
         SIGNOZ_SQLSTORE_PROVIDER: postgres
         SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN: tcp://signoz-telemetrystore-clickhouse-0-0:9000

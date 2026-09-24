@@ -36,3 +36,12 @@ glitchtip.lucasgiancola.io {
     tls internal
     reverse_proxy glitchtip-glitchtip_web-1:8000
 }
+
+signoz.lucasgiancola.io {
+    reverse_proxy signoz-signoz-0:8080
+}
+
+ingest.lucasgiancola.io {
+    tls internal
+    reverse_proxy signoz-ingester-1:4318
+}

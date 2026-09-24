@@ -2,6 +2,8 @@ name: signoz
 networks:
   signoz-network:
     name: signoz-network
+  web:
+    external: true
 services:
   ingester:
     command:
@@ -21,14 +23,11 @@ services:
       signoz-network:
         aliases:
         - signoz-ingester
-    ports:
-    - 4317:4317
-    - 4318:4318
+      web: {}
     restart: unless-stopped
     volumes:
     - ./ingester/ingester.yaml:/etc/otel-collector-config.yaml:ro
     - ./ingester/opamp.yaml:/etc/opamp-config.yaml:ro
-  
   signoz-metastore-postgres-0:
     container_name: signoz-metastore-postgres-0
     environment:
@@ -48,11 +47,11 @@ services:
     - signoz-network
     restart: unless-stopped
     volumes:
-    - signoz-metastore-postgres-0-data:/var/lib/postgresql/data
- 
+    - /srv/storage/signoz/postgres:/var/lib/postgresql/data
   signoz-signoz-0:
     container_name: signoz-signoz-0
     environment:
+    - SIGNOZ_ALERTMANAGER_SIGNOZ_EXTERNAL__URL=https://signoz.lucasgiancola.io
     - SIGNOZ_SQLSTORE_POSTGRES_DSN=postgres://signoz:signoz@signoz-metastore-postgres-0:5432/signoz?sslmode=disable
     - SIGNOZ_SQLSTORE_PROVIDER=postgres
     - SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN=tcp://signoz-telemetrystore-clickhouse-0-0:9000
@@ -71,10 +70,8 @@ services:
     image: signoz/signoz:latest
     networks:
     - signoz-network
-    ports:
-    - 8080:8080
+    - web
     restart: unless-stopped
-  
   signoz-telemetrykeeper-clickhousekeeper-0:
     container_name: signoz-telemetrykeeper-clickhousekeeper-0
     entrypoint:
@@ -99,9 +96,8 @@ services:
     - signoz-network
     restart: unless-stopped
     volumes:
-    - signoz-telemetrykeeper-0-data:/var/lib/clickhouse-keeper
+    - /srv/storage/signoz/clickhouse-keeper:/var/lib/clickhouse-keeper
     - ./telemetrykeeper/clickhousekeeper/keeper-0.yaml:/etc/clickhouse-keeper/keeper.yaml:ro
-  
   signoz-telemetrystore-clickhouse-0-0:
     container_name: signoz-telemetrystore-clickhouse-0-0
     depends_on:
@@ -128,11 +124,10 @@ services:
     - signoz-network
     restart: unless-stopped
     volumes:
-    - signoz-telemetrystore-0-0-data:/var/lib/clickhouse
-    - signoz-telemetrystore-user-scripts:/var/lib/clickhouse/user_scripts:ro
+    - /srv/storage/signoz/clickhouse:/var/lib/clickhouse
+    - /srv/appdata/signoz/user-scripts:/var/lib/clickhouse/user_scripts:ro
     - ./telemetrystore/clickhouse/config-0-0.yaml:/etc/clickhouse-server/config-0-0.yaml:ro
     - ./telemetrystore/clickhouse/functions.yaml:/etc/clickhouse-server/functions.yaml:ro
-  
   signoz-telemetrystore-clickhouse-user-scripts:
     command:
     - bash
@@ -152,8 +147,7 @@ services:
     - signoz-network
     restart: on-failure
     volumes:
-    - signoz-telemetrystore-user-scripts:/var/lib/clickhouse/user_scripts
-  
+    - /srv/appdata/signoz/user-scripts:/var/lib/clickhouse/user_scripts
   signoz-telemetrystore-migrator:
     command:
     - -c
@@ -172,13 +166,3 @@ services:
     networks:
     - signoz-network
     restart: on-failure
-
-volumes:
-  signoz-metastore-postgres-0-data:
-    name: signoz-metastore-postgres-0-data
-  signoz-telemetrykeeper-0-data:
-    name: signoz-telemetrykeeper-0-data
-  signoz-telemetrystore-0-0-data:
-    name: signoz-telemetrystore-0-0-data
-  signoz-telemetrystore-user-scripts:
-    name: signoz-telemetrystore-user-scripts

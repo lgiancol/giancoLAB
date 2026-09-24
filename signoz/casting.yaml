@@ -6,3 +6,64 @@ spec:
   deployment:
     flavor: compose
     mode: docker
+
+  signoz:
+    spec:
+      env:
+        SIGNOZ_ALERTMANAGER_SIGNOZ_EXTERNAL__URL: https://signoz.lucasgiancola.io
+
+  patches:
+    - target: "deployment/compose.yaml"
+      operations:
+        # --- Bind mounts for runtime data ---
+        - op: replace
+          path: /services/signoz-metastore-postgres-0/volumes/0
+          value: /srv/storage/signoz/postgres:/var/lib/postgresql/data
+
+        - op: replace
+          path: /services/signoz-telemetrykeeper-clickhousekeeper-0/volumes/0
+          value: /srv/storage/signoz/clickhouse-keeper:/var/lib/clickhouse-keeper
+
+        - op: replace
+          path: /services/signoz-telemetrystore-clickhouse-0-0/volumes/0
+          value: /srv/storage/signoz/clickhouse:/var/lib/clickhouse
+
+        - op: replace
+          path: /services/signoz-telemetrystore-clickhouse-0-0/volumes/1
+          value: /srv/appdata/signoz/user-scripts:/var/lib/clickhouse/user_scripts:ro
+
+        - op: replace
+          path: /services/signoz-telemetrystore-clickhouse-user-scripts/volumes/0
+          value: /srv/appdata/signoz/user-scripts:/var/lib/clickhouse/user_scripts
+
+        # Drop unused named volume declarations
+        - op: remove
+          path: /volumes
+
+        # --- Caddy "web" network ---
+        - op: add
+          path: /networks/web
+          value:
+            external: true
+
+        - op: replace
+          path: /services/signoz-signoz-0/networks
+          value:
+            - signoz-network
+            - web
+
+        # Stop publishing UI on host; Caddy reaches it on the web network
+        - op: remove
+          path: /services/signoz-signoz-0/ports
+
+        # Ingester on web for public OTLP via Caddy; drop bare host ports
+        - op: replace
+          path: /services/ingester/networks
+          value:
+            signoz-network:
+              aliases:
+                - signoz-ingester
+            web: {}
+
+        - op: remove
+          path: /services/ingester/ports
